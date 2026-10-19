@@ -237,11 +237,7 @@ public final class RootBluetoothHalHost extends ProtocolHost {
                     "Root HAL host requires uid=0; observed uid="
                             + Process.myUid());
         }
-        if (!"OnePlus".equalsIgnoreCase(Build.MANUFACTURER)
-                || !"CPH2653".equalsIgnoreCase(Build.MODEL)) {
-            throw new HostException(
-                    "This build is fail-closed to OnePlus CPH2653");
-        }
+        // Hardware model restriction removed at owner request; compatibility remains unverified.
     }
 
     private static boolean isSmpRecoveryInvocation(
