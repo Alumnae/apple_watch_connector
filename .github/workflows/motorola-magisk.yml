@@ -26,24 +26,19 @@ jobs:
           rustup toolchain install stable --profile minimal
           rustup default stable
           rustup target add aarch64-linux-android
-      - name: Apply narrow experimental Motorola allowance
+      - name: Remove Bluetooth host manufacturer and model restriction
         shell: python
         run: |
           from pathlib import Path
           p = Path('apple-watch-bridge/hal/src/main/java/dev/applewatchandroid/bridge/RootBluetoothHalHost.java')
           source = p.read_text()
           old = '''if (!"OnePlus".equalsIgnoreCase(Build.MANUFACTURER)
-                          || !"CPH2653".equalsIgnoreCase(Build.MODEL)) {'''
-          new = '''// Experimental port: no hardware compatibility is implied by admission.
-                  // Keep the original CLI target token for protocol compatibility.
-                  boolean originalTarget = "OnePlus".equalsIgnoreCase(Build.MANUFACTURER)
-                          && "CPH2653".equalsIgnoreCase(Build.MODEL);
-                  boolean motorolaTarget = "motorola".equalsIgnoreCase(Build.MANUFACTURER)
-                          && ("motorola razr 60 ultra".equalsIgnoreCase(Build.MODEL)
-                          || "razr 60 ultra".equalsIgnoreCase(Build.MODEL));
-                  if (!originalTarget && !motorolaTarget) {'''
+                          || !"CPH2653".equalsIgnoreCase(Build.MODEL)) {
+                      throw new HostException(
+                              "This build is fail-closed to OnePlus CPH2653");
+                  }'''
           assert source.count(old) == 1, 'Upstream target guard changed; review required'
-          source = source.replace(old, new).replace('This build is fail-closed to OnePlus CPH2653', 'This build allows OnePlus CPH2653 and experimental Motorola razr 60 ultra only')
+          source = source.replace(old, '// Hardware model restriction removed at owner request; compatibility remains unverified.')
           assert 'Process.myUid() != 0' in source
           assert 'requireStockBluetoothOff();' in source
           p.write_text(source)
