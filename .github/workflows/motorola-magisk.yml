@@ -1,9 +1,6 @@
 name: Motorola Magisk build
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - '.github/workflows/motorola-magisk.yml'
 permissions:
   contents: read
 jobs:
@@ -37,8 +34,10 @@ jobs:
                       throw new HostException(
                               "This build is fail-closed to OnePlus CPH2653");
                   }'''
-          assert source.count(old) == 1, 'Upstream target guard changed; review required'
-          source = source.replace(old, '// Hardware model restriction removed at owner request; compatibility remains unverified.')
+          if source.count(old) == 1:
+              source = source.replace(old, '// Hardware model restriction removed at owner request; compatibility remains unverified.')
+          else:
+              assert 'Hardware model restriction removed at owner request' in source, 'Unexpected target policy; review required'
           assert 'Process.myUid() != 0' in source
           assert 'requireStockBluetoothOff();' in source
           p.write_text(source)
